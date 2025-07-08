@@ -1,0 +1,9 @@
+fastapi[all]
+langchain
+langchain-community
+langchain-core
+langchain-openai
+langserve[all]
+python-docx
+python-dotenv
+httpx

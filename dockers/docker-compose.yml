@@ -1,0 +1,18 @@
+version: '1.0'
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: dockers/Dockerfile
+    user: 10005:10005
+    image: nrc-ai:${version:-latest}
+    container_name: nrc-ai
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATA_PATH=/app/data
+    env_file:
+      - ../.env
+    command: /app/bin/api.sh
