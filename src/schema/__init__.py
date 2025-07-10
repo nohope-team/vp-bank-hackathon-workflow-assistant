@@ -15,7 +15,7 @@ from schema.schema import (
     SchemaAnalysisInput,
     StreamETLInput,
     CleanedDataResult,
-    UserInputExplainModelAgent,
+    UserInputExplainWorkflowAgent,
     DataCleaningInput
 )
 
@@ -36,6 +36,6 @@ __all__ = [
     "SchemaAnalysisInput",
     "StreamETLInput",
     "CleanedDataResult",
-    "UserInputExplainModelAgent",
+    "UserInputExplainWorkflowAgent",
     "DataCleaningInput"
 ]

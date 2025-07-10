@@ -96,17 +96,328 @@ class UserInputSelectFeatureAgent(UserInput):
         examples=[{"category_id": "CreditCard"}],
     )
 
-class UserInputExplainModelAgent(UserInput):
+class UserInputExplainWorkflowAgent(UserInput):
     """User input for explaining a model in the agent."""
-
-    model_explain_config: dict[str, Any] = Field(
-        description="Configuration for the model explanation.",
+    message: str = Field(
+        description="User input to the agent.",
+        examples=["Please explain this workflow configuration."],
+    )
+    
+    workflow_json_data: dict[str, Any] = Field(
+        description="Configuration of the workflow.",
         default={},
         examples=[
-            {
-                "user_id": "37a72d0d-460e-44e0-b398-61b9ba5745c4",
-                "product_id": "13387e14-30ea-48db-b996-d2e5e4de7f28",
-            }
+            {"workflow_config": {
+                "name": "Contact",
+                "nodes": [
+                    {
+                    "parameters": {
+                        "operation": "search",
+                        "base": {
+                        "__rl": True,
+                        "value": "appo9AT6RTEL9HCen",
+                        "mode": "list",
+                        "cachedResultName": "Base",
+                        "cachedResultUrl": "https://airtable.com/appo9AT6RTEL9HCen"
+                        },
+                        "table": {
+                        "__rl": True,
+                        "value": "tblNH2z0sIttxM8lX",
+                        "mode": "list",
+                        "cachedResultName": "Table 1",
+                        "cachedResultUrl": "https://airtable.com/appo9AT6RTEL9HCen/tblNH2z0sIttxM8lX"
+                        },
+                        "filterByFormula": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Filter_By_Formula', ``, 'string') }}",
+                        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+                        "options": {}
+                    },
+                    "type": "n8n-nodes-base.airtableTool",
+                    "typeVersion": 2.1,
+                    "position": [
+                        -360,
+                        380
+                    ],
+                    "id": "6b6adeaf-9dbe-4aa6-9ff5-73bf58759f63",
+                    "name": "Get Contacts",
+                    "credentials": {
+                        "airtableTokenApi": {
+                        "id": "G4nDJh2BzQ7papIj",
+                        "name": "Airtable Personal Access Token account 2"
+                        }
+                    }
+                    },
+                    {
+                    "parameters": {
+                        "operation": "upsert",
+                        "base": {
+                        "__rl": True,
+                        "value": "appo9AT6RTEL9HCen",
+                        "mode": "list",
+                        "cachedResultName": "Base",
+                        "cachedResultUrl": "https://airtable.com/appo9AT6RTEL9HCen"
+                        },
+                        "table": {
+                        "__rl": True,
+                        "value": "tblNH2z0sIttxM8lX",
+                        "mode": "list",
+                        "cachedResultName": "Table 1",
+                        "cachedResultUrl": "https://airtable.com/appo9AT6RTEL9HCen/tblNH2z0sIttxM8lX"
+                        },
+                        "columns": {
+                        "mappingMode": "defineBelow",
+                        "value": {
+                            "name": "={{ $fromAI(\"name\") }}",
+                            "email": "={{ $fromAI(\"emailAddress\") }}",
+                            "phoneNumber": "={{ $fromAI(\"phoneNumber\") }}"
+                        },
+                        "matchingColumns": [
+                            "name"
+                        ],
+                        "schema": [
+                            {
+                            "id": "id",
+                            "displayName": "id",
+                            "required": False,
+                            "defaultMatch": True,
+                            "display": True,
+                            "type": "string",
+                            "readOnly": True,
+                            "removed": False
+                            },
+                            {
+                            "id": "name",
+                            "displayName": "name",
+                            "required": False,
+                            "defaultMatch": False,
+                            "canBeUsedToMatch": True,
+                            "display": True,
+                            "type": "string",
+                            "readOnly": False,
+                            "removed": False
+                            },
+                            {
+                            "id": "email",
+                            "displayName": "email",
+                            "required": False,
+                            "defaultMatch": False,
+                            "canBeUsedToMatch": True,
+                            "display": True,
+                            "type": "string",
+                            "readOnly": False,
+                            "removed": False
+                            },
+                            {
+                            "id": "phoneNumber",
+                            "displayName": "phoneNumber",
+                            "required": False,
+                            "defaultMatch": False,
+                            "canBeUsedToMatch": True,
+                            "display": True,
+                            "type": "string",
+                            "readOnly": False,
+                            "removed": False
+                            }
+                        ],
+                        "attemptToConvertTypes": False,
+                        "convertFieldsToString": False
+                        },
+                        "options": {}
+                    },
+                    "type": "n8n-nodes-base.airtableTool",
+                    "typeVersion": 2.1,
+                    "position": [
+                        -220,
+                        360
+                    ],
+                    "id": "052ea1f7-bdff-4955-b8f1-d887b13e36ad",
+                    "name": "Add or Update Contact",
+                    "credentials": {
+                        "airtableTokenApi": {
+                        "id": "G4nDJh2BzQ7papIj",
+                        "name": "Airtable Personal Access Token account 2"
+                        }
+                    }
+                    },
+                    {
+                    "parameters": {
+                        "assignments": {
+                        "assignments": [
+                            {
+                            "id": "4f360190-a717-4a93-8336-d03ea65975d5",
+                            "name": "response",
+                            "value": "={{ $json.output }}",
+                            "type": "string"
+                            }
+                        ]
+                        },
+                        "options": {}
+                    },
+                    "type": "n8n-nodes-base.set",
+                    "typeVersion": 3.4,
+                    "position": [
+                        0,
+                        0
+                    ],
+                    "id": "29602472-e6cc-4aea-805e-4a090c3de8dc",
+                    "name": "Response"
+                    },
+                    {
+                    "parameters": {
+                        "assignments": {
+                        "assignments": [
+                            {
+                            "id": "4f360190-a717-4a93-8336-d03ea65975d5",
+                            "name": "response",
+                            "value": "An error occurred. Please try again.",
+                            "type": "string"
+                            }
+                        ]
+                        },
+                        "options": {}
+                    },
+                    "type": "n8n-nodes-base.set",
+                    "typeVersion": 3.4,
+                    "position": [
+                        0,
+                        180
+                    ],
+                    "id": "e59c1ef2-4f4b-4d9f-b3c1-c660c972b0b8",
+                    "name": "Try Again2"
+                    },
+                    {
+                    "parameters": {
+                        "modelName": "models/gemini-2.5-flash",
+                        "options": {}
+                    },
+                    "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+                    "typeVersion": 1,
+                    "position": [
+                        -600,
+                        340
+                    ],
+                    "id": "64571bbf-36cc-4136-8def-062fff567dfe",
+                    "name": "Google Gemini Chat Model1",
+                    "credentials": {
+                        "googlePalmApi": {
+                        "id": "mOHwaPE68rRhYNI2",
+                        "name": "Google Gemini(PaLM) Api account"
+                        }
+                    }
+                    },
+                    {
+                    "parameters": {
+                        "workflowInputs": {
+                        "values": [
+                            {
+                            "name": "query"
+                            }
+                        ]
+                        }
+                    },
+                    "type": "n8n-nodes-base.executeWorkflowTrigger",
+                    "typeVersion": 1.1,
+                    "position": [
+                        -760,
+                        80
+                    ],
+                    "id": "dd66f8b0-c2d1-41db-a8c0-5a0d78d92a60",
+                    "name": "When Executed by Another Workflow"
+                    },
+                    {
+                    "parameters": {
+                        "promptType": "define",
+                        "text": "={{ $json.query }}",
+                        "options": {
+                        "systemMessage": "=# Overview\nYou are a contact management assistant. Your responsibilities include looking up contacts, adding new contacts, or updating a contact's information.\n\n**Contact Management**  \n   - Use \"Get Contacts\" to retrieve contact information. \n   - Use \"Add or Update Contact\" to store new contact information or modify existing entries. "
+                        }
+                    },
+                    "type": "@n8n/n8n-nodes-langchain.agent",
+                    "typeVersion": 1.7,
+                    "position": [
+                        -520,
+                        80
+                    ],
+                    "id": "26b9ee19-b881-4b80-a98d-dc4ae8dfb9f5",
+                    "name": "Contact Agent2",
+                    "onError": "continueErrorOutput"
+                    }
+                ],
+                "pinData": {},
+                "connections": {
+                    "Get Contacts": {
+                    "ai_tool": [
+                        [
+                        {
+                            "node": "Contact Agent2",
+                            "type": "ai_tool",
+                            "index": 0
+                        }
+                        ]
+                    ]
+                    },
+                    "Add or Update Contact": {
+                    "ai_tool": [
+                        [
+                        {
+                            "node": "Contact Agent2",
+                            "type": "ai_tool",
+                            "index": 0
+                        }
+                        ]
+                    ]
+                    },
+                    "Google Gemini Chat Model1": {
+                    "ai_languageModel": [
+                        [
+                        {
+                            "node": "Contact Agent2",
+                            "type": "ai_languageModel",
+                            "index": 0
+                        }
+                        ]
+                    ]
+                    },
+                    "When Executed by Another Workflow": {
+                    "main": [
+                        [
+                        {
+                            "node": "Contact Agent2",
+                            "type": "main",
+                            "index": 0
+                        }
+                        ]
+                    ]
+                    },
+                    "Contact Agent2": {
+                    "main": [
+                        [
+                        {
+                            "node": "Response",
+                            "type": "main",
+                            "index": 0
+                        }
+                        ],
+                        [
+                        {
+                            "node": "Try Again2",
+                            "type": "main",
+                            "index": 0
+                        }
+                        ]
+                    ]
+                    }
+                },
+                "active": False,
+                "settings": {
+                    "executionOrder": "v1"
+                },
+                "versionId": "07f46e94-c82d-4da1-a972-e415c38b6872",
+                "meta": {
+                    "instanceId": "150692bad95c45279834c73a1668cb2894616f65767d082d2e66cc2431e380fa"
+                },
+                "id": "eYgtJ3zjSOo2IWtp",
+                "tags": []
+                }}
         ]
     )
     

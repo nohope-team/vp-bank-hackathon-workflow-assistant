@@ -32,7 +32,7 @@ from schema import (
     UserInputTrainModelAgent,
     UserInputSelectFeatureAgent,
     ModelInferenceInput,
-    UserInputExplainModelAgent,
+    UserInputExplainWorkflowAgent,
     SchemaAnalysisInput,
     DataCleaningInput
 )
@@ -114,7 +114,7 @@ async def info() -> ServiceMetadata:
     )
 
 
-async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent, UserInputTrainModelAgent, UserInputExplainModelAgent, SchemaAnalysisInput, DataCleaningInput], agent: Pregel) -> tuple[dict[str, Any], UUID]:
+async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent, UserInputTrainModelAgent, UserInputExplainWorkflowAgent, SchemaAnalysisInput, DataCleaningInput], agent: Pregel) -> tuple[dict[str, Any], UUID]:
     """
     Parse user input and handle any required interrupt resumption.
     Returns kwargs for agent invocation and the run_id.
@@ -136,15 +136,14 @@ async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent
     # Merge product_config and model_config safely, defaulting to empty dicts if None
     category_config = user_input.category_config if hasattr(user_input, "category_config") else {}
     model_training_config = user_input.model_training_config if hasattr(user_input, "model_training_config") else {}
-    model_explain_config = user_input.model_explain_config if hasattr(user_input, "model_explain_config") else {}
+    workflow_json_data = user_input.workflow_json_data if hasattr(user_input, "workflow_json_data") else {}
     clean_etl_config = user_input.schemas_analysis_config if hasattr(user_input, "clean_etl_config") else {}
     data_cleaning_config = user_input.data_cleaning_config if hasattr(user_input, "data_cleaning_config") else {}
     
-    logger.info(f"Metadata category_config: {category_config}")
     config = RunnableConfig(
         configurable=configurable,
         run_id=run_id,
-        metadata={**category_config, **model_training_config, **model_explain_config, **clean_etl_config, **data_cleaning_config},
+        metadata={**category_config, **model_training_config, **workflow_json_data, **clean_etl_config, **data_cleaning_config},
     )
     
     # Check for interrupts that need to be resumed
@@ -308,6 +307,18 @@ async def simple_chatbot(
     """
     return StreamingResponse(
         message_generator(user_input, agent_id="simple_chatbot"),
+        media_type="text/event-stream",
+    )
+    
+@router.post("/workflow_explain_chatbot/stream", response_class=StreamingResponse, responses=_sse_response_example())
+async def workflow_explain_chatbot(
+    user_input: UserInputExplainWorkflowAgent,
+) -> StreamingResponse:
+    """
+    Stream the response from the workflow explain chatbot agent.
+    """
+    return StreamingResponse(
+        message_generator(user_input, agent_id="workflow_explain_chatbot"),
         media_type="text/event-stream",
     )
 
