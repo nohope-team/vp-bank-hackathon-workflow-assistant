@@ -1,0 +1,35 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+      - update-ci-cd
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy VPBank Hackathon AI Workflow 
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up SSH key
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ssh_key
+        chmod 600 ssh_key 
+        
+    - name: Deploy to server
+      run: |
+        ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          cd ${{ secrets.PROJECT_PATH }}
+          echo "Pulling code"
+          git pull
+          echo "Pulled code"
+          source .venv/bin/activate
+          echo "Starting new process"
+          nohup make dev > /dev/null 2>&1 &
+          echo "Deployed successfully"
+        EOF
+      

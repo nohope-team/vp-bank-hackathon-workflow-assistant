@@ -5,4 +5,4 @@ set -x
 source .env
 
 # run server
-python src/server.py
+python3 src/server.py
