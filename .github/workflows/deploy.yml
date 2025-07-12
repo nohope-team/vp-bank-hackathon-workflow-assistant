@@ -28,8 +28,10 @@ jobs:
           git pull
           echo "Pulled code"
           source .venv/bin/activate
-          echo "Starting new process"
+          pkill -f "python3 src/server.py" || true
+          echo "Killed make dev"
           nohup make dev > /dev/null 2>&1 &
+          echo "Started make dev"
           echo "Deployed successfully"
         EOF
       
