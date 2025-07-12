@@ -10,7 +10,6 @@ from schema.schema import (
     UserInput,
     StreamInput,
     UserInputSelectFeatureAgent,
-    UserInputTrainModelAgent,
     ModelInferenceInput,
     SchemaAnalysisInput,
     StreamETLInput,

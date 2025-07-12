@@ -67,12 +67,6 @@ class UserInput(BaseModel):
         examples=[{"spicy_level": 0.8}],
     )
     
-    category_config: dict[str, Any] = Field(
-        description="Category configuration to pass through to the agent",
-        default={},
-        examples=[{"category_id": "CreditCard"}],
-    )
-    
     # Whether to stream LLM tokens to the client.
     stream_tokens: bool = Field(
         description="Whether to stream LLM tokens to the client.",
@@ -421,87 +415,6 @@ class UserInputExplainWorkflowAgent(UserInput):
         ]
     )
     
-class UserInputTrainModelAgent(UserInput):
-    """User input for training a model in the agent."""
-
-    category_config: dict[str, Any] = Field(
-        description="Product configuration to pass through to the agent",
-        default={},
-        examples=[{"category_id": "CreditCard"}],
-    )
-    
-    # Model training parameters
-    model_training_config: dict[str, Any] = Field(
-        description="Parameters for training the model.",
-        default={
-            "feature_list": [
-                'user_id',
-                'age',
-                'occupation',
-                'income_tier',
-                'marital_status',
-                'household_size',
-                'preferred_language',
-                'products',
-                'tenure_years',
-                'avg_balance',
-                'cc_limit_util',
-                'mortgage_outstanding',
-                'investments_aum',
-                'monthly_salary',
-                'top_mcc',
-                'ecom_pos_ratio',
-                'overseas_share',
-                'avg_bill_pay_amt',
-                'cash_wd_freq',
-                'mobile_login_freq',
-                'days_since_push',
-                'preferred_channel',
-                'offer_ctr',
-                'offer_accepts',
-                'offer_fatigue'
-            ],
-            "max_depth": 5,
-            "min_samples_split": 2,
-            "min_samples_leaf": 1,
-        },
-        examples=[
-            {
-                "feature_list": [
-                    'user_id',
-                    'age',
-                    'occupation',
-                    'income_tier',
-                    'marital_status',
-                    'household_size',
-                    'preferred_language',
-                    'products',
-                    'tenure_years',
-                    'avg_balance',
-                    'cc_limit_util',
-                    'mortgage_outstanding',
-                    'investments_aum',
-                    'monthly_salary',
-                    'top_mcc',
-                    'ecom_pos_ratio',
-                    'overseas_share',
-                    'avg_bill_pay_amt',
-                    'cash_wd_freq',
-                    'mobile_login_freq',
-                    'days_since_push',
-                    'preferred_channel',
-                    'offer_ctr',
-                    'offer_accepts',
-                    'offer_fatigue'
-                ],
-                "max_depth": 5,
-                "min_samples_split": 2,
-                "min_samples_leaf": 1,
-            }
-        ],
-    )
-
-
 class ToolCall(TypedDict):
     """Represents a request to call a tool."""
 
@@ -597,9 +510,9 @@ class ChatHistoryInput(BaseModel):
     )
     
     agent_id: str | None = Field(
-        description="Agent ID to filter the chat history. Includes select_feature_agent, train_model_agent, and other agent IDs.",
-        default="select_feature_agent",
-        examples=["select_feature_agent"],
+        description="Agent ID to filter the chat history. Includes workflow_explain_chatbot, and other agent IDs.",
+        default="workflow_explain_chatbot",
+        examples=["workflow_explain_chatbot"],
     )
 
 

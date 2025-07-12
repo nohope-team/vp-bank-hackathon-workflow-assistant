@@ -29,7 +29,6 @@ from schema import (
     FeedbackResponse,
     ServiceMetadata,
     UserInput,
-    UserInputTrainModelAgent,
     UserInputSelectFeatureAgent,
     ModelInferenceInput,
     UserInputExplainWorkflowAgent,
@@ -114,7 +113,7 @@ async def info() -> ServiceMetadata:
     )
 
 
-async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent, UserInputTrainModelAgent, UserInputExplainWorkflowAgent, SchemaAnalysisInput, DataCleaningInput], agent: Pregel) -> tuple[dict[str, Any], UUID]:
+async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent, UserInputExplainWorkflowAgent, SchemaAnalysisInput, DataCleaningInput], agent: Pregel) -> tuple[dict[str, Any], UUID]:
     """
     Parse user input and handle any required interrupt resumption.
     Returns kwargs for agent invocation and the run_id.
@@ -346,7 +345,7 @@ async def feedback(feedback: Feedback) -> FeedbackResponse:
 def history(input: ChatHistoryInput) -> ChatHistory:
     """
     Get chat history.
-    Agent_id list: ["select_feature_agent", "train_model_agent"].
+    Agent_id list: ["workflow_explain_chatbot"].
     """
     try:
         agent: Pregel = get_agent(input.agent_id)
