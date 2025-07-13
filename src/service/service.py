@@ -320,6 +320,18 @@ async def workflow_explain_chatbot(
         message_generator(user_input, agent_id="workflow_explain_chatbot"),
         media_type="text/event-stream",
     )
+    
+@router.post("/workflow_planner_chatbot/stream", response_class=StreamingResponse, responses=_sse_response_example())
+async def workflow_planner_chatbot(
+    user_input: UserInput,
+) -> StreamingResponse:
+    """
+    Stream the response from the workflow planner chatbot agent.
+    """
+    return StreamingResponse(
+        message_generator(user_input, agent_id="workflow_planner_chatbot"),
+        media_type="text/event-stream",
+    )
 
 @router.post("/feedback")
 async def feedback(feedback: Feedback) -> FeedbackResponse:

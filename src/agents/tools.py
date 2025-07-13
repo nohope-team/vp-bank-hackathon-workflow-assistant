@@ -1,7 +1,29 @@
+import json
+import requests
+
 from langgraph.types import StreamWriter
 
 from agents.utils import send_custom_stream_data
+from core.settings import logger, settings
 
+def workflow_config_positioning(workflow: dict):
+    """Auto positioning of workflow configuration in n8n.
+    """
+    url = "https://api.ia2s.app/webhook/workflow/magic/position"
+
+    # Replace this with your actual workflow data
+    payload = {
+        "workflow": workflow,
+    }
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    logger.info("Sending request to n8n positioning endpoint...")
+    response = requests.post(url, json=payload, headers=headers)
+
+    return json.loads(response.text)
 
 # async def get_user_features(writer: StreamWriter) -> dict:
 #     """Return the release date of Langgraph."""
@@ -74,3 +96,18 @@ from agents.utils import send_custom_stream_data
 #     )
     
 #     return category_data
+
+
+def test_posisioning_workflow():
+    """Test the workflow configuration positioning."""
+    
+    import json
+    sample_workflow = json.load(open("../example_workflow/Sample_for_positioning.json", "r"))
+    sample_workflow = json.loads(json.dumps(sample_workflow))  # Ensure it's a proper dict
+    
+    workflow_config_positioning(sample_workflow)
+    
+if __name__ == "__main__":
+    # Example workflow configuration
+    test_posisioning_workflow()
+    
