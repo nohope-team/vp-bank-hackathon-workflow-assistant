@@ -94,7 +94,8 @@ class Settings(BaseSettings):
         DatabaseType.SQLITE
     )  # Options: DatabaseType.SQLITE or DatabaseType.POSTGRES
     SQLITE_DB_PATH: str = "checkpoints.db"
-
+    INMEMORY_STORE_FILE_PATH: str = "inmemory_store.json"
+    
     # PostgreSQL Configuration
     POSTGRES_USER: str | None = None
     POSTGRES_PASSWORD: str | None = None

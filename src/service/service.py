@@ -21,6 +21,7 @@ from langsmith import Client as LangsmithClient
 from agents import DEFAULT_AGENT, get_agent, get_all_agent_info
 from core import settings
 from memory import initialize_database, initialize_store
+from database.inmem_database import InMemoryDatabase
 from schema import (
     ChatHistory,
     ChatHistoryInput,
@@ -99,7 +100,7 @@ app.add_middleware(
 )
 
 router = APIRouter(dependencies=[Depends(verify_bearer)])
-
+inmem_store = InMemoryDatabase(file_path=settings.INMEMORY_STORE_FILE_PATH)
 
 @router.get("/info")
 async def info() -> ServiceMetadata:
@@ -122,6 +123,11 @@ async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent
     thread_id = user_input.thread_id or str(uuid4())
     user_id = user_input.user_id or str(uuid4())
 
+    # save thread_id for user_id in in-memory store
+    thread_id_for_user_id: list[str] = inmem_store.get(user_id)
+    thread_id_for_user_id.append(thread_id)
+    inmem_store.set(user_id, thread_id_for_user_id)
+    
     configurable = {"thread_id": thread_id, "model": user_input.model, "user_id": user_id}
 
     if user_input.agent_config:
@@ -370,6 +376,27 @@ def history(input: ChatHistoryInput) -> ChatHistory:
     except Exception as e:
         logger.error(f"An exception occurred: {e}")
         raise HTTPException(status_code=404, detail="Thread not found or no messages available.")
+
+@router.get("/user_id/")
+def get_user_id(
+) -> list[str]:
+    """
+    Get all thread IDs for a given user ID.
+    """
+    user_id = inmem_store.keys()
+    if not user_id:
+        raise HTTPException(status_code=404, detail="Can not found any user ID.")
+    return user_id
+
+@router.get("/thread_id/{user_id}")
+def get_thread_id(user_id: str) -> list[str]:
+    """
+    Get all thread IDs for a given user ID.
+    """
+    thread_ids = inmem_store.get(user_id)
+    if not thread_ids:
+        raise HTTPException(status_code=404, detail="Thread IDs not found for the given user ID.")
+    return thread_ids
 
 @app.get("/health")
 async def health_check():
