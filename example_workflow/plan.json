@@ -1,0 +1,108 @@
+{
+    "plan": "Here’s a comprehensive n8n workflow configuration for processing CVs, extracting relevant information, and saving the data to a database (e.g., MySQL). This workflow will also include sending a confirmation email to the candidate after processing their CV.\n\n### Workflow Plan: CV Processing and Database Storage\n\n**Description:** This workflow automates the process of receiving CV submissions, extracting candidate information, saving the results to a MySQL database, and sending a confirmation email to the candidate.\n\n**Steps:**\n\nStep 1: CV Submission Trigger\n- Description: Listen for incoming CV submissions via webhook.\n- Node Type: Webhook Trigger\n- Details: Configure webhook to accept file uploads and form data.\n\nStep 2: Extract CV Data\n- Description: Parse uploaded CV file to extract text content.\n- Node Type: Extract from File\n- Details: Support PDF and DOC formats, extract all text content.\n\nStep 3: Qualifications Extraction\n- Description: Use AI to extract structured qualifications from CV content.\n- Node Type: AI Information Extractor\n- Details: Extract name, email, skills, experience, and education using LLM.\n\nStep 4: Personal Data Extraction\n- Description: Extract personal information such as telephone number and city.\n- Node Type: AI Information Extractor\n- Details: Extract additional personal data from the CV text.\n\nStep 5: Merge Data\n- Description: Combine extracted qualifications and personal data into a single output.\n- Node Type: Merge\n- Details: Merge outputs from qualifications and personal data extraction nodes.\n\nStep 6: Save to Database\n- Description: Insert the merged candidate data into a MySQL database.\n- Node Type: MySQL\n- Details: Configure to insert data into the \"candidates\" table.\n\nStep 7: Send Confirmation Email\n- Description: Send a confirmation email to the candidate after processing their CV.\n- Node Type: Email Send\n- Details: Use the candidate's email address for sending the confirmation.\n\n**Flow Connections:**\n- Step 1 → Step 2: Pass uploaded file from webhook to file extractor.\n- Step 2 → Step 3: Send extracted text to qualifications extractor.\n- Step 2 → Step 4: Send extracted text to personal data extractor.\n- Step 3 → Step 5: Pass qualifications data to merge node.\n- Step 4 → Step 5: Pass personal data to merge node.\n- Step 5 → Step 6: Send merged data to MySQL node.\n- Step 6 → Step 7: Send confirmation email after saving to the database.\n\n**Additional Requirements:**\n- Error handling for unsupported file formats.\n- Data validation for extracted information.\n- Secure storage of sensitive candidate data.\n\n### n8n Workflow Configuration\n\n```json\n{\n  \"name\": \"CV Processing Workflow\",\n  \"meta\": {\n    \"description\": \"Workflow for processing CVs, extracting candidate information, saving to a database, and sending confirmation emails.\"\n  },\n  \"nodes\": [\n    {\n      \"name\": \"Webhook Trigger\",\n      \"type\": \"n8n-nodes-base.webhook\",\n      \"typeVersion\": 1,\n      \"position\": [300, 300],\n      \"parameters\": {\n        \"httpMethod\": \"POST\",\n        \"path\": \"cv-upload\"\n      }\n    },\n    {\n      \"name\": \"Extract from File\",\n      \"type\": \"n8n-nodes-base.extractFromFile\",\n      \"typeVersion\": 1,\n      \"position\": [500, 300],\n      \"parameters\": {\n        \"operation\": \"pdf\",\n        \"binaryPropertyName\": \"CV\"\n      }\n    },\n    {\n      \"name\": \"Qualifications Extractor\",\n      \"type\": \"@n8n/n8n-nodes-langchain.informationExtractor\",\n      \"typeVersion\": 1,\n      \"position\": [700, 200],\n      \"parameters\": {\n        \"text\": \"={{ $json.text }}\",\n        \"attributes\": {\n          \"attributes\": [\n            {\n              \"name\": \"Name\",\n              \"description\": \"Candidate's name.\"\n            },\n            {\n              \"name\": \"Email\",\n              \"description\": \"Candidate's email.\"\n            },\n            {\n              \"name\": \"Skills\",\n              \"description\": \"Extract the candidate’s skills.\"\n            },\n            {\n              \"name\": \"Experience\",\n              \"description\": \"Candidate's work experience.\"\n            },\n            {\n              \"name\": \"Education\",\n              \"description\": \"Candidate's educational background.\"\n            }\n          ]\n        }\n      }\n    },\n    {\n      \"name\": \"Personal Data Extractor\",\n      \"type\": \"@n8n/n8n-nodes-langchain.informationExtractor\",\n      \"typeVersion\": 1,\n      \"position\": [700, 400],\n      \"parameters\": {\n        \"text\": \"={{ $json.text }}\",\n        \"attributes\": {\n          \"attributes\": [\n            {\n              \"name\": \"Telephone\",\n              \"description\": \"Candidate's telephone number.\"\n            },\n            {\n              \"name\": \"City\",\n              \"description\": \"Candidate's city.\"\n            }\n          ]\n        }\n      }\n    },\n    {\n      \"name\": \"Merge Data\",\n      \"type\": \"n8n-nodes-base.merge\",\n      \"typeVersion\": 1,\n      \"position\": [900, 300],\n      \"parameters\": {\n        \"mode\": \"combine\",\n        \"combineBy\": \"combineAll\"\n      }\n    },\n    {\n      \"name\": \"Save to Database\",\n      \"type\": \"n8n-nodes-base.mysql\",\n      \"typeVersion\": 1,\n      \"position\": [1100, 300],\n      \"parameters\": {\n        \"operation\": \"insert\",\n        \"table\": \"candidates\",\n        \"columns\": {\n          \"value\": {\n            \"name\": \"={{ $json['Name'] }}\",\n            \"email\": \"={{ $json['Email'] }}\",\n            \"city\": \"={{ $json['City'] }}\",\n            \"skills\": \"={{ $json['Skills'] }}\",\n            \"experience\": \"={{ $json['Experience'] }}\",\n            \"education\": \"={{ $json['Education'] }}\",\n            \"telephone\": \"={{ $json['Telephone'] }}\"\n          }\n        },\n        \"credentials\": {\n          \"mysql\": {\n            \"id\": \"your_mysql_credentials_id\",\n            \"name\": \"MySQL Database\"\n          }\n        }\n      }\n    },\n    {\n      \"name\": \"Send Confirmation Email\",\n      \"type\": \"n8n-nodes-base.emailSend\",\n      \"typeVersion\": 1,\n      \"position\": [1300, 300],\n      \"parameters\": {\n        \"toEmail\": \"={{ $json['Email'] }}\",\n        \"subject\": \"CV Submission Confirmation\",\n        \"text\": \"Thank you for submitting your CV. We will review it and get back to you soon.\"\n      }\n    }\n  ],\n  \"connections\": {\n    \"Webhook Trigger\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Extract from File\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Extract from File\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Qualifications Extractor\",\n            \"type\": \"main\",\n            \"index\": 0\n          },\n          {\n            \"node\": \"Personal Data Extractor\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Qualifications Extractor\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Merge Data\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Personal Data Extractor\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Merge Data\",\n            \"type\": \"main\",\n            \"index\": 1\n          }\n        ]\n      ]\n    },\n    \"Merge Data\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Save to Database\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Save to Database\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Send Confirmation Email\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    }\n  }\n}\n```\n\n### Key Points:\n- **Webhook Trigger**: This node listens for incoming CV submissions via a webhook.\n- **Extract from File**: This node extracts text from the uploaded CV file (PDF or DOC format).\n- **Qualifications Extractor**: This AI node extracts structured qualifications from the CV text.\n- **Personal Data Extractor**: This AI node extracts personal information such as telephone number and city.\n- **Merge Data**: This node combines the outputs from the qualifications and personal data extractors.\n- **Save to Database**: This node inserts the extracted and merged data into a specified MySQL database table named \"candidates\".\n- **Send Confirmation Email**: This node sends a confirmation email to the candidate after their CV has been processed.\n\n### Additional Considerations:\n- Ensure to replace `your_mysql_credentials_id` with the actual credentials for the MySQL integration to work correctly.\n- Implement error handling and data validation as needed to ensure the integrity of the data being processed and stored.",
+    "workflow_name": "CV Processing and Database Storage",
+    "description": "This workflow automates the process of receiving CV submissions, extracting candidate information, saving the results to a MySQL database, and sending a confirmation email to the candidate.",
+    "steps": [
+        {
+            "step_number": 1,
+            "title": "CV Submission Trigger",
+            "description": "Listen for incoming CV submissions via webhook.",
+            "node_type": "Webhook Trigger",
+            "details": "Configure webhook to accept file uploads and form data."
+        },
+        {
+            "step_number": 2,
+            "title": "Extract CV Data",
+            "description": "Parse uploaded CV file to extract text content.",
+            "node_type": "Extract from File",
+            "details": "Support PDF and DOC formats, extract all text content."
+        },
+        {
+            "step_number": 3,
+            "title": "Qualifications Extraction",
+            "description": "Use AI to extract structured qualifications from CV content.",
+            "node_type": "AI Information Extractor",
+            "details": "Extract name, email, skills, experience, and education using LLM."
+        },
+        {
+            "step_number": 4,
+            "title": "Personal Data Extraction",
+            "description": "Extract personal information such as telephone number and city.",
+            "node_type": "AI Information Extractor",
+            "details": "Extract additional personal data from the CV text."
+        },
+        {
+            "step_number": 5,
+            "title": "Merge Data",
+            "description": "Combine extracted qualifications and personal data into a single output.",
+            "node_type": "Merge",
+            "details": "Merge outputs from qualifications and personal data extraction nodes."
+        },
+        {
+            "step_number": 6,
+            "title": "Save to Database",
+            "description": "Insert the merged candidate data into a MySQL database.",
+            "node_type": "MySQL",
+            "details": "Configure to insert data into the \"candidates\" table."
+        },
+        {
+            "step_number": 7,
+            "title": "Send Confirmation Email",
+            "description": "Send a confirmation email to the candidate after processing their CV.",
+            "node_type": "Email Send",
+            "details": "Use the candidate's email address for sending the confirmation."
+        }
+    ],
+    "flow_connections": [
+        {
+            "from_step": 1,
+            "to_step": 2,
+            "description": "Pass uploaded file from webhook to file extractor."
+        },
+        {
+            "from_step": 2,
+            "to_step": 3,
+            "description": "Send extracted text to qualifications extractor."
+        },
+        {
+            "from_step": 2,
+            "to_step": 4,
+            "description": "Send extracted text to personal data extractor."
+        },
+        {
+            "from_step": 3,
+            "to_step": 5,
+            "description": "Pass qualifications data to merge node."
+        },
+        {
+            "from_step": 4,
+            "to_step": 5,
+            "description": "Pass personal data to merge node."
+        },
+        {
+            "from_step": 5,
+            "to_step": 6,
+            "description": "Send merged data to MySQL node."
+        },
+        {
+            "from_step": 6,
+            "to_step": 7,
+            "description": "Send confirmation email after saving to the database."
+        }
+    ],
+    "additional_requirements": [
+        "Error handling for unsupported file formats.",
+        "Data validation for extracted information.",
+        "Secure storage of sensitive candidate data.\n\n### n8n Workflow Configuration\n\n```json\n{\n  \"name\": \"CV Processing Workflow\",\n  \"meta\": {\n    \"description\": \"Workflow for processing CVs, extracting candidate information, saving to a database, and sending confirmation emails.\"\n  },\n  \"nodes\": [\n    {\n      \"name\": \"Webhook Trigger\",\n      \"type\": \"n8n-nodes-base.webhook\",\n      \"typeVersion\": 1,\n      \"position\": [300, 300],\n      \"parameters\": {\n        \"httpMethod\": \"POST\",\n        \"path\": \"cv-upload\"\n      }\n    },\n    {\n      \"name\": \"Extract from File\",\n      \"type\": \"n8n-nodes-base.extractFromFile\",\n      \"typeVersion\": 1,\n      \"position\": [500, 300],\n      \"parameters\": {\n        \"operation\": \"pdf\",\n        \"binaryPropertyName\": \"CV\"\n      }\n    },\n    {\n      \"name\": \"Qualifications Extractor\",\n      \"type\": \"@n8n/n8n-nodes-langchain.informationExtractor\",\n      \"typeVersion\": 1,\n      \"position\": [700, 200],\n      \"parameters\": {\n        \"text\": \"={{ $json.text }}\",\n        \"attributes\": {\n          \"attributes\": [\n            {\n              \"name\": \"Name\",\n              \"description\": \"Candidate's name.\"\n            },\n            {\n              \"name\": \"Email\",\n              \"description\": \"Candidate's email.\"\n            },\n            {\n              \"name\": \"Skills\",\n              \"description\": \"Extract the candidate’s skills.\"\n            },\n            {\n              \"name\": \"Experience\",\n              \"description\": \"Candidate's work experience.\"\n            },\n            {\n              \"name\": \"Education\",\n              \"description\": \"Candidate's educational background.\"\n            }\n          ]\n        }\n      }\n    },\n    {\n      \"name\": \"Personal Data Extractor\",\n      \"type\": \"@n8n/n8n-nodes-langchain.informationExtractor\",\n      \"typeVersion\": 1,\n      \"position\": [700, 400],\n      \"parameters\": {\n        \"text\": \"={{ $json.text }}\",\n        \"attributes\": {\n          \"attributes\": [\n            {\n              \"name\": \"Telephone\",\n              \"description\": \"Candidate's telephone number.\"\n            },\n            {\n              \"name\": \"City\",\n              \"description\": \"Candidate's city.\"\n            }\n          ]\n        }\n      }\n    },\n    {\n      \"name\": \"Merge Data\",\n      \"type\": \"n8n-nodes-base.merge\",\n      \"typeVersion\": 1,\n      \"position\": [900, 300],\n      \"parameters\": {\n        \"mode\": \"combine\",\n        \"combineBy\": \"combineAll\"\n      }\n    },\n    {\n      \"name\": \"Save to Database\",\n      \"type\": \"n8n-nodes-base.mysql\",\n      \"typeVersion\": 1,\n      \"position\": [1100, 300],\n      \"parameters\": {\n        \"operation\": \"insert\",\n        \"table\": \"candidates\",\n        \"columns\": {\n          \"value\": {\n            \"name\": \"={{ $json['Name'] }}\",\n            \"email\": \"={{ $json['Email'] }}\",\n            \"city\": \"={{ $json['City'] }}\",\n            \"skills\": \"={{ $json['Skills'] }}\",\n            \"experience\": \"={{ $json['Experience'] }}\",\n            \"education\": \"={{ $json['Education'] }}\",\n            \"telephone\": \"={{ $json['Telephone'] }}\"\n          }\n        },\n        \"credentials\": {\n          \"mysql\": {\n            \"id\": \"your_mysql_credentials_id\",\n            \"name\": \"MySQL Database\"\n          }\n        }\n      }\n    },\n    {\n      \"name\": \"Send Confirmation Email\",\n      \"type\": \"n8n-nodes-base.emailSend\",\n      \"typeVersion\": 1,\n      \"position\": [1300, 300],\n      \"parameters\": {\n        \"toEmail\": \"={{ $json['Email'] }}\",\n        \"subject\": \"CV Submission Confirmation\",\n        \"text\": \"Thank you for submitting your CV. We will review it and get back to you soon.\"\n      }\n    }\n  ],\n  \"connections\": {\n    \"Webhook Trigger\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Extract from File\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Extract from File\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Qualifications Extractor\",\n            \"type\": \"main\",\n            \"index\": 0\n          },\n          {\n            \"node\": \"Personal Data Extractor\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Qualifications Extractor\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Merge Data\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Personal Data Extractor\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Merge Data\",\n            \"type\": \"main\",\n            \"index\": 1\n          }\n        ]\n      ]\n    },\n    \"Merge Data\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Save to Database\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Save to Database\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Send Confirmation Email\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    }\n  }\n}\n```\n\n### Key Points:",
+        "**Webhook Trigger**: This node listens for incoming CV submissions via a webhook.",
+        "**Extract from File**: This node extracts text from the uploaded CV file (PDF or DOC format).",
+        "**Qualifications Extractor**: This AI node extracts structured qualifications from the CV text.",
+        "**Personal Data Extractor**: This AI node extracts personal information such as telephone number and city.",
+        "**Merge Data**: This node combines the outputs from the qualifications and personal data extractors.",
+        "**Save to Database**: This node inserts the extracted and merged data into a specified MySQL database table named \"candidates\".",
+        "**Send Confirmation Email**: This node sends a confirmation email to the candidate after their CV has been processed.\n\n### Additional Considerations:",
+        "Ensure to replace `your_mysql_credentials_id` with the actual credentials for the MySQL integration to work correctly.",
+        "Implement error handling and data validation as needed to ensure the integrity of the data being processed and stored."
+    ],
+    "steps_count": 7
+}

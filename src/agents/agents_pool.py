@@ -5,7 +5,7 @@ from langgraph.pregel import Pregel
 from agents.chatbot import agent as chatbot
 from agents.workflow_planner_chatbot import workflow_planner_chatbot_agent
 from agents.workflow_explain_chatbot import workflow_explain_chatbot_agent
-# from agents.n8n_config_generator_agent import n8n_config_generator_agent
+from agents.workflow_config_generator_agent import workflow_config_generator_agent
 from schema import AgentInfo
 
 DEFAULT_AGENT = "simple_chatbot"
@@ -27,10 +27,10 @@ agents: dict[str, Agent] = {
         description="An interactive AI assistant that analyzes n8n workflow configurations and explains their components, data flow, and business logic through conversation.",
         graph=workflow_explain_chatbot_agent
     ),
-    # "n8n_config_generator": Agent(
-    #     description="An AI agent that converts workflow plans into complete n8n workflow JSON configurations ready for import.",
-    #     graph=n8n_config_generator_agent
-    # ),
+    "workflow_config_generator": Agent(
+        description="An intelligent n8n workflow configuration generator that combines workflow plans with existing templates to create complete, working n8n workflow JSON configurations for banking/fintech applications.",
+        graph=workflow_config_generator_agent
+    ),
 }
 
 

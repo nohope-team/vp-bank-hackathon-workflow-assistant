@@ -414,6 +414,26 @@ class UserInputExplainWorkflowAgent(UserInput):
                 }}
         ]
     )
+
+class UserInputWorkflowConfigGeneratorAgent(UserInput):
+    """User input for generating n8n workflow configurations."""
+    message: str = Field(
+        description="User input to the agent for workflow configuration generation.",
+        examples=[
+            "Generate an n8n workflow configuration for processing CVs and saving to a database",
+            "Create a workflow that handles banking loan applications with AI risk assessment",
+            "Build a workflow for customer onboarding with KYC verification"
+        ],
+    )
+    
+    workflow_plan: str = Field(
+        description="Optional workflow plan or description to guide the configuration generation.",
+        default="",
+        examples=[
+            "1. Receive CV via webhook\n2. Parse CV content using AI\n3. Extract candidate information\n4. Save to Google Sheets\n5. Send confirmation email",
+            "1. Customer submits loan application\n2. Validate application data\n3. Perform credit check\n4. AI risk assessment\n5. Auto-approve or route to manual review"
+        ]
+    )
     
 class ToolCall(TypedDict):
     """Represents a request to call a tool."""
@@ -430,7 +450,7 @@ class ToolCall(TypedDict):
 class ChatMessage(BaseModel):
     """Message in a chat."""
 
-    type: Literal["human", "ai", "tool", "custom", "model_training_result"] = Field(
+    type: Literal["human", "ai", "tool", "custom", "workflow_config", "workflow_plan"] = Field(
         description="Role of the message.",
         examples=["human", "ai", "tool", "custom"],
     )

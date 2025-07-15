@@ -38,15 +38,15 @@ class CustomDataAI(BaseModel):
 
     data: dict[str, Any] = Field(description="The custom data")
 
-    def to_langchain(self) -> ChatMessage:
-        return ChatMessage(content=[json.dumps(self.data, ensure_ascii=False)], role="model_training_result")
+    def to_langchain(self, role: str = "workflow_config") -> ChatMessage:
+        return ChatMessage(content=[json.dumps(self.data, ensure_ascii=False)], role=role)
 
-    def dispatch(self, writer: StreamWriter) -> None:
-        writer(self.to_langchain())
+    def dispatch(self, writer: StreamWriter, role: str = "workflow_config") -> None:
+        writer(self.to_langchain(role=role))
 
 
-def send_custom_stream_data_model(
-    writer: StreamWriter, data: dict[str, Any], type: str = "current_state"
+def send_custom_stream_data_workflow_config(
+    writer: StreamWriter, data: dict[str, Any]
 ) -> None:
     """
     Put custom data into the stream writer.
@@ -57,4 +57,18 @@ def send_custom_stream_data_model(
         type (str): The type of the custom data, default is "current_state".
     """
     custom_data = CustomDataAI(data=data)
-    custom_data.dispatch(writer)
+    custom_data.dispatch(writer, role="workflow_config")
+    
+def send_custom_stream_data_workflow_plan(
+    writer: StreamWriter, data: dict[str, Any]
+) -> None:
+    """
+    Put custom data into the stream writer.
+    
+    Args:
+        writer (StreamWriter): The stream writer to dispatch the custom data.
+        data (dict[str, Any]): The custom data to be sent.
+        type (str): The type of the custom data, default is "current_state".
+    """
+    custom_data = CustomDataAI(data=data)
+    custom_data.dispatch(writer, role="workflow_plan")

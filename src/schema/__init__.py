@@ -15,6 +15,7 @@ from schema.schema import (
     StreamETLInput,
     CleanedDataResult,
     UserInputExplainWorkflowAgent,
+    UserInputWorkflowConfigGeneratorAgent,
     DataCleaningInput
 )
 
@@ -36,5 +37,6 @@ __all__ = [
     "StreamETLInput",
     "CleanedDataResult",
     "UserInputExplainWorkflowAgent",
+    "UserInputWorkflowConfigGeneratorAgent",
     "DataCleaningInput"
 ]

@@ -1,5 +1,6 @@
 import json
 import requests
+import aiohttp
 
 from langgraph.types import StreamWriter
 
@@ -24,6 +25,28 @@ def workflow_config_positioning(workflow: dict):
     response = requests.post(url, json=payload, headers=headers)
 
     return json.loads(response.text)
+
+
+async def aworkflow_config_positioning(workflow: dict):
+    """Auto positioning of workflow configuration in n8n.
+    """
+    url = "https://api.ia2s.app/webhook/workflow/magic/position"
+
+    # Replace this with your actual workflow data
+    payload = {
+        "workflow": workflow,
+    }
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    logger.info("Sending request to n8n positioning endpoint...")
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as response:
+            text = await response.text()
+            return json.loads(text)
 
 # async def get_user_features(writer: StreamWriter) -> dict:
 #     """Return the release date of Langgraph."""

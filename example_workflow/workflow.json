@@ -1,0 +1,158 @@
+{
+  "name": "CV Processing and Database Storage",
+  "meta": {
+    "description": "This workflow automates the process of receiving CV submissions, extracting relevant information, and storing the results in a database for further analysis and review."
+  },
+  "nodes": [
+    {
+      "name": "CV Submission Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cv-submission",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "name": "Extract CV Data",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "CV"
+      }
+    },
+    {
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro-latest",
+        "options": {}
+      }
+    },
+    {
+      "name": "Analyze Candidate Information",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "name",
+              "description": "Candidate's full name"
+            },
+            {
+              "name": "email",
+              "description": "Contact email"
+            },
+            {
+              "name": "skills",
+              "description": "Technical skills"
+            },
+            {
+              "name": "education",
+              "description": "Educational background"
+            },
+            {
+              "name": "work_experience",
+              "description": "Work experience summary"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Prepare Data for Database",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 300],
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    name: $json[0].name,\n    email: $json[0].email,\n    skills: $json[0].skills,\n    education: $json[0].education,\n    work_experience: $json[0].work_experience\n  }\n}];"
+      }
+    },
+    {
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "parameters": {
+        "operation": "insert",
+        "table": "candidates",
+        "columns": {
+          "name": "={{ $json[0].name }}",
+          "email": "={{ $json[0].email }}",
+          "skills": "={{ $json[0].skills }}",
+          "education": "={{ $json[0].education }}",
+          "work_experience": "={{ $json[0].work_experience }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "CV Submission Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract CV Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CV Data": {
+      "main": [
+        [
+          {
+            "node": "Analyze Candidate Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Candidate Information",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Candidate Information": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data for Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data for Database": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

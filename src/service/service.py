@@ -33,6 +33,7 @@ from schema import (
     UserInputSelectFeatureAgent,
     ModelInferenceInput,
     UserInputExplainWorkflowAgent,
+    UserInputWorkflowConfigGeneratorAgent,
     SchemaAnalysisInput,
     DataCleaningInput
 )
@@ -114,7 +115,7 @@ async def info() -> ServiceMetadata:
     )
 
 
-async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent, UserInputExplainWorkflowAgent, SchemaAnalysisInput, DataCleaningInput], agent: Pregel) -> tuple[dict[str, Any], UUID]:
+async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent, UserInputExplainWorkflowAgent, UserInputWorkflowConfigGeneratorAgent, SchemaAnalysisInput, DataCleaningInput], agent: Pregel) -> tuple[dict[str, Any], UUID]:
     """
     Parse user input and handle any required interrupt resumption.
     Returns kwargs for agent invocation and the run_id.
@@ -140,15 +141,19 @@ async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent
     logger.info(f"user_input {user_input}")
     # Merge product_config and model_config safely, defaulting to empty dicts if None
     category_config = user_input.category_config if hasattr(user_input, "category_config") else {}
-    model_training_config = user_input.model_training_config if hasattr(user_input, "model_training_config") else {}
     workflow_json_data = user_input.workflow_json_data if hasattr(user_input, "workflow_json_data") else {}
     clean_etl_config = user_input.schemas_analysis_config if hasattr(user_input, "clean_etl_config") else {}
     data_cleaning_config = user_input.data_cleaning_config if hasattr(user_input, "data_cleaning_config") else {}
     
+    # Handle workflow config generator specific fields
+    workflow_config_data = {}
+    if hasattr(user_input, "workflow_plan") and user_input.workflow_plan:
+        workflow_config_data["workflow_plan"] = user_input.workflow_plan
+    
     config = RunnableConfig(
         configurable=configurable,
         run_id=run_id,
-        metadata={**category_config, **model_training_config, **workflow_json_data, **clean_etl_config, **data_cleaning_config},
+        metadata={**category_config, **workflow_json_data, **clean_etl_config, **data_cleaning_config, **workflow_config_data},
     )
     
     # Check for interrupts that need to be resumed
@@ -336,6 +341,18 @@ async def workflow_planner_chatbot(
     """
     return StreamingResponse(
         message_generator(user_input, agent_id="workflow_planner_chatbot"),
+        media_type="text/event-stream",
+    )
+
+@router.post("/workflow_config_generator/stream", response_class=StreamingResponse, responses=_sse_response_example())
+async def workflow_config_generator(
+    user_input: UserInputWorkflowConfigGeneratorAgent,
+) -> StreamingResponse:
+    """
+    Stream the response from the workflow config generator agent.
+    """
+    return StreamingResponse(
+        message_generator(user_input, agent_id="workflow_config_generator"),
         media_type="text/event-stream",
     )
 

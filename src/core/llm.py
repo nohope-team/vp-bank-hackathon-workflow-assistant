@@ -70,7 +70,7 @@ def get_model(model_name: AllModelEnum, /) -> ModelT:
     if not api_model_name:
         raise ValueError(f"Unsupported model: {model_name}")
 
-    if model_name in OpenAIModelName:
+    if model_name in list(OpenAIModelName):
         return ChatOpenAI(model=api_model_name, temperature=0, streaming=True)
     if model_name in OpenAICompatibleName:
         if not settings.COMPATIBLE_BASE_URL or not settings.COMPATIBLE_MODEL:

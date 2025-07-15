@@ -51,20 +51,11 @@ def langchain_to_chat_message(message: BaseMessage) -> ChatMessage:
             )
             return tool_message
         case LangchainChatMessage():
-            if message.role == "custom":
-                custom_message = ChatMessage(
-                    type="custom",
-                    content=str(message.content[0]),
-                )
-                return custom_message
-            if message.role == "model_training_result":
-                custom_message = ChatMessage(
-                    type="model_training_result",
-                    content=str(message.content[0]),
-                )
-                return custom_message
-            else:
-                raise ValueError(f"Unsupported chat message role: {message.role}")
+            custom_message = ChatMessage(
+                type=message.role,
+                content=str(message.content[0]),
+            )
+            return custom_message
         case _:
             raise ValueError(f"Unsupported message type: {message.__class__.__name__}")
 
