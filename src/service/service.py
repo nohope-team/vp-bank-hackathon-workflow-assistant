@@ -126,7 +126,8 @@ async def _handle_input(user_input: Union[UserInput, UserInputSelectFeatureAgent
 
     # save thread_id for user_id in in-memory store
     thread_id_for_user_id: list[str] = inmem_store.get(user_id)
-    thread_id_for_user_id.append(thread_id)
+    if not (thread_id in thread_id_for_user_id):
+        thread_id_for_user_id.append(thread_id)
     inmem_store.set(user_id, thread_id_for_user_id)
     
     configurable = {"thread_id": thread_id, "model": user_input.model, "user_id": user_id}
