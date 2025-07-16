@@ -342,7 +342,15 @@ async def workflow_config_generator(state: WorkflowConfigGeneratorState, config:
         updated_config = extract_json_config_from_response(response_content)
         if not updated_config:
             updated_config = current_config
-    
+    # Limit the config to only the nodes and connections
+    updated_config = {
+        "name": updated_config.get("name", "Generated Workflow"),
+        "nodes": updated_config.get("nodes", []),
+        "connections": updated_config.get("connections", {}),
+        "settings": updated_config.get("settings", {}),
+        "staticData": updated_config.get("staticData", {}),
+    }
+        
     send_custom_stream_data_workflow_config(
         writer,
         data=updated_config
